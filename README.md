@@ -1,130 +1,176 @@
 # Mobility Predictors: Identifying Structural Conditions for Upward Economic Mobility
 
-Author: Jeff Charles
-Program: Master of Science in Data Science — Merrimack College
+**Author:** Jeff Charles (JC)
+**Course:** DSE6311 — Capstone, Merrimack College
+**Date:** May 2026
+**Stakeholders:** Urban Institute and National Low Income Housing Coalition (NLIHC)
 
-## Mobility Predictors: Which Baseline Structural Conditions Are Most Associated with Upward Economic Mobility?
+---
 
-## Brief Background
+## Project Overview
 
-The United States has long positioned upward economic mobility as a cornerstone of national identity, the idea that hard work and opportunity, regardless of starting point, can lead to a better life. However, the empirical record increasingly challenges this narrative. As Chetty et al. (2017) demonstrate, the fraction of children earning more than their parents has fallen from approximately 90% for those born in 1940 to just 50% for those born in 1984. Further, a child born into the bottom income quintile has only a 7.5% chance of reaching the top quintile, among the lowest rates of any peer nation (Chetty et al., 2014).
+This project uses the Panel Study of Income Dynamics (PSID) to identify which structural baseline conditions best predict whether a household in the bottom 40 percent of the U.S. income distribution in 2010 crossed the national median income threshold by 2021. Three supervised classification models (logistic regression, random forest, and XGBoost) were applied to a panel-linked sample of 2,375 households. SHAP analysis was used for post-hoc interpretability on the best-performing model.
 
-These findings point toward structural conditions rather than individual effort as the primary drivers of mobility outcomes. Wealth, housing cost burden, geographic opportunity, and access to stable employment shape trajectories in ways that compound over time and vary substantially across demographic groups. Understanding which of these structural conditions most predict mobility is not only an academic question, it has direct implications for housing policy, workforce development, and social safety net design.
+**Research Question:**
+Among households in the bottom 40 percent of the U.S. income distribution in 2010, which combination of structural baseline conditions (including wealth, housing cost burden, family structure, educational attainment, employment status, geography, and demographic characteristics) best predicts whether a household crosses the national median income threshold by 2021?
 
-This project uses the Panel Study of Income Dynamics (PSID), the gold standard longitudinal household survey in the United States, to examine which baseline structural conditions are most associated with whether a lower-income household reaches above median income over a 10-year period. The analysis is predictive and descriptive, not causal.
+**Key Findings:**
+- Age of household head is the dominant predictor across all three models (RF Gini importance: 32.9%, SHAP mean |value|: 0.79)
+- Race: White (Non-Hispanic) ranks second in all three models after controlling for wealth, education, income, housing cost, and geography
+- The racial mobility gap (33.2% White vs. 13.3% Black) survives every structural control applied
+- XGBoost achieves the best cross-validated AUC: 0.811
+- SHAP dependence analysis finds education and wealth operate as roughly independent contributors; Prediction 4 (education conditional on wealth) is partially disconfirmed
 
-## Research Question
+---
 
-**Which baseline structural factors are most associated with whether lower-income households reach above median income over a 10-year period (2011 to 2021)?**
+## Quick View (No Setup Required)
 
-More specifically: among households in the bottom 40% of the income distribution in 2011, which combination of structural conditions including wealth, cost burden, family structure, education, employment, geography, and demographics best predicts whether a household crosses the national median income threshold by 2021? This question is motivated by a recognized gap between what the public believes drives mobility and what the data actually shows (Chetty et al., 2014), with direct relevance to policymakers, researchers, and organizations working on economic equity.
+Open **Final_Code.html** in any browser to view the fully rendered notebook with all outputs and figures already populated. No Python installation needed.
 
-## Hypothesis and Predictions
+---
 
-**Primary hypothesis:** Structural wealth and cost burden at baseline are stronger predictors of upward income mobility than educational attainment alone, and their predictive power compounds across demographic groups.
-
-This hypothesis is grounded in Chetty et al.'s (2014) finding that neighborhood-level structural conditions outperform individual characteristics in predicting long-run income outcomes. It is further supported by evidence that parental wealth, distinct from income, buffers households against shocks and enables investment, while housing cost burdens function as a structural constraint on savings and mobility capacity regardless of earnings (Desmond, 2016).
-
-**Specific predictions:**
-
-* Household wealth proxy at baseline will rank among the top three most important features in the Random Forest and XGBoost models, outperforming educational attainment. This is supported by research showing wealth's compounding intergenerational effect on opportunity (Chetty et al., 2014).
-* Housing cost burden will be negatively associated with mobility outcomes and will have stronger predictive power than geographic region alone. Households spending more than 30% of income on housing have structurally limited capacity to save or invest, constraining upward movement regardless of other advantages (Desmond, 2016).
-* The interaction between low wealth and high cost burden will surface a distinct high-burden/low-asset household profile through K-Means clustering, with substantially lower mobility rates than other groups.
-* Educational attainment will retain predictive value but will be conditional on baseline wealth, reflecting the well-documented finding that education amplifies existing structural advantage rather than independently substituting for it (Putnam, 2015).
-
-## Dataset
-
-**Panel Study of Income Dynamics (PSID)**
-
-* Longitudinal household survey tracking income, wealth, and demographics since 1968
-* Baseline window: **2011** (aligns with PSID wealth supplement wave)
-* Follow-up window: **2021**
-* Access: https://psidonline.isr.umich.edu - free with registration
-
-> **Note:** Raw PSID data is not included in this repository. Follow the access instructions above to download the data and place it in the same directory as the notebook, or set the `CAPSTONE_DATA_DIR` environment variable to its location.
-
-## How to Run
-
-### Requirements
-
-Python 3.8 or higher is required. Install dependencies with:
+## Repository Structure
 
 ```
-pip install pandas numpy matplotlib seaborn scipy scikit-learn
+mobility-predictors/
+├── Final_Code.ipynb                          # Main analysis notebook (EDA + preprocessing + modeling + SHAP)
+├── Final_Code.html                           # Rendered HTML version — open in any browser
+├── psid_panel.csv                            # Panel-linked analytic dataset (2,375 households)
+├── Mobility_Predictors_Final_Report.docx     # Final written deliverable
+├── Mobility_Predictors_Final_Report.pdf      # PDF version of the final report
+├── output/                                   # Generated figures
+│   ├── shap_fig10_summary_bar.png
+│   ├── shap_fig11_beeswarm.png
+│   ├── shap_fig12_dependence_edu_wealth.png
+│   └── (additional EDA figures)
+└── README.md
 ```
 
-### Data Setup
+---
 
-1. Register and download the PSID data at https://psidonline.isr.umich.edu
-2. You will need the 2011 Family File (FAM2011ER), the 2021 Family File (FAM2021ER), and the 2023 Cross-Year Individual File (IND2023ER)
-3. The panel linkage and preprocessing steps produce a file called `psid_panel.csv` which is the input to the EDA notebook
-4. Place `psid_panel.csv` in the same directory as `EDA_updated.ipynb`, or set the environment variable `CAPSTONE_DATA_DIR` to the folder containing it:
+## Running the Notebook
 
-```
-# Windows PowerShell
-$env:CAPSTONE_DATA_DIR = "C:\path\to\your\data"
+**Requirements:** Python 3.8+, Jupyter
 
-# Mac/Linux
-export CAPSTONE_DATA_DIR="/path/to/your/data"
+**Install dependencies:**
+
+```bash
+pip install pandas numpy matplotlib seaborn scipy scikit-learn xgboost shap jupyter
 ```
 
-### Running the Notebook
+**Clone the repo and run:**
 
-Open `EDA_updated.ipynb` in Jupyter and run all cells in order from top to bottom. All cells must be run sequentially as later preprocessing cells depend on variables created in earlier ones. Output figures and CSV summaries will be saved to an `output/` subdirectory created automatically on first run.
+```bash
+git clone https://github.com/JCharles8/mobility-predictors.git
+cd mobility-predictors
+mkdir -p output
+jupyter notebook Final_Code.ipynb
+```
+
+Once Jupyter opens, run all cells in order via Kernel > Restart & Run All.
+
+`psid_panel.csv` must be in the same directory as the notebook. It is included in the repository, so no additional data download is needed.
+
+**Expected runtime:** 10-20 minutes, dominated by RandomizedSearchCV for Random Forest and XGBoost (n_iter=50 each).
+
+---
+
+## Notebook Structure
+
+| Section | Cells | Description |
+|---------|-------|-------------|
+| Custom Functions | 1 | `sign_preserving_log`, `mobility_summary` defined at top for global availability |
+| Setup & Load | 2-3 | Load data, define colors and category orders |
+| EDA Sections 1-5 | 4-8 | Group comparisons, chi-squared tests, correlations, outlier detection, interaction effects |
+| EDA Figures 1-9 | 9-17 | KDE plots, mobility rate charts, correlation matrix, beeswarm, dependence |
+| Preprocessing | 18-23 | Train-test split, missing indicator, scaling, MICE imputation, K-Means clustering |
+| Validation | 24-25 | Leakage audit, assertion-based pipeline checks |
+| Logistic Regression | 26 | Baseline model with 5-fold CV, coefficients |
+| Random Forest | 27 | OOB error curve, RandomizedSearchCV tuning |
+| XGBoost | 28 | RandomizedSearchCV tuning |
+| Model Comparison | 29 | Performance table and feature importance comparison |
+| SHAP Analysis | 30-34 | TreeExplainer, Figure 10 (summary bar), Figure 11 (beeswarm), Figure 12 (dependence) |
+
+---
+
+## Validation
+
+Cell 25 runs five assertion-based checks to confirm pipeline integrity:
+
+1. Train/test positive class rates preserved within tolerance (+/-0.01)
+2. No missing values remain after MICE imputation
+3. Cluster labels only contain valid values (0, 1, 2)
+4. `sign_preserving_log` preserves sign direction
+5. Train and test sets have non-overlapping indices
+
+All five pass on the author's machine (self-tested May 2026).
+
+---
 
 ## Custom Functions
 
-Two custom utility functions are defined at the top of `EDA_updated.ipynb` (Cell 0) and used throughout the notebook.
-
-### `sign_preserving_log(x)`
-
-Applies a sign-preserving log1p transformation to a numeric array or Series. Used to handle the extreme right skew in the wealth variable (skewness ~17) which includes negative values that standard log transformation cannot handle.
+**`sign_preserving_log(x)`**
 
 ```python
-sign_preserving_log(x)
+def sign_preserving_log(x):
+    return np.sign(x) * np.log1p(np.abs(x))
 ```
 
-**Args:** `x` — numeric array or pandas Series, may include negative values
-
-**Returns:** numpy array with same sign as input, magnitude compressed by log1p
-
-**Example:**
-```python
-df['log_wealth'] = sign_preserving_log(df['wealth_no_equity'])
-```
-
-### `mobility_summary(df, group_col, target_col='above_median_2021', order=None)`
-
-Computes mobility rate, count, and 95% confidence interval by group. Used throughout the notebook to produce consistent group-level summaries for categorical predictors without repeating groupby/agg boilerplate.
+Applies a log transformation that handles negative values by preserving sign. Used on household net worth, which includes negative values (debt exceeds assets) for roughly 25 percent of the sample. Reduces skewness from approximately 17.0 to approximately 4.5.
 
 ```python
-mobility_summary(df, group_col, target_col='above_median_2021', order=None)
+sign_preserving_log(np.array([-1000, 0, 1000]))
+# array([-6.908,  0.   ,  6.908])
 ```
 
-**Args:**
-* `df` — input DataFrame
-* `group_col` — column name to group by
-* `target_col` — binary target column (default: `above_median_2021`)
-* `order` — optional list specifying category order for output rows
+---
 
-**Returns:** DataFrame with columns `mobility_rate_pct`, `n`, `ci_95`
+**`mobility_summary(df, group_col, target_col='above_median_2021', order=None)`**
 
-**Example:**
+```python
+def mobility_summary(df, group_col, target_col='above_median_2021', order=None):
+    grp = df.dropna(subset=[group_col]).groupby(group_col)[target_col]
+    summary = grp.agg(['mean', 'count']).rename(columns={'mean': 'mobility_rate', 'count': 'n'})
+    summary['mobility_rate_pct'] = (summary['mobility_rate'] * 100).round(1)
+    summary['ci_95'] = (1.96 * np.sqrt(
+        summary['mobility_rate'] * (1 - summary['mobility_rate']) /
+        summary['n'].replace(0, np.nan)
+    ) * 100).round(2)
+    return summary[['mobility_rate_pct', 'n', 'ci_95']]
+```
+
+Computes mobility rate, count, and 95 percent confidence interval by group. Used throughout EDA for consistent group-level summaries across categorical predictors.
+
 ```python
 mobility_summary(df, 'education', order=edu_order)
 mobility_summary(df, 'race_ethnicity')
 ```
 
+---
+
+## Data
+
+**Source:** Panel Study of Income Dynamics (PSID), University of Michigan Institute for Social Research
+**Access:** [psidonline.isr.umich.edu](https://psidonline.isr.umich.edu) (free registration required)
+
+`psid_panel.csv` is the cleaned, panel-linked analytic dataset included in this repository. The raw PSID source files (FAM2011ER, FAM2021ER, IND2023ER) are not redistributable and must be downloaded directly from the PSID portal if reproducing the data construction step.
+
+---
+
+## Citation
+
+Charles, J. (2026). *Mobility predictors: Identifying structural conditions for upward economic mobility* [Capstone project]. Merrimack College, DSE6311.
+
+---
+
 ## References
 
-Chetty, R., Grusky, D., Hell, M., Hendren, N., Manduca, R., & Narang, J. (2017). The fading American dream: Trends in absolute income mobility since 1940. *Science, 356*(6336), 398-406.
-
-Chetty, R., Hendren, N., Kline, P., & Saez, E. (2014). Where is the land of opportunity? The geography of intergenerational mobility in the United States. *Quarterly Journal of Economics, 129*(4), 1553-1623.
+Chetty, R., Hendren, N., Kline, P., & Saez, E. (2014). Where is the land of opportunity? *Quarterly Journal of Economics, 129*(4), 1553-1623.
 
 Desmond, M. (2016). *Evicted: Poverty and profit in the American city.* Crown Publishers.
+
+Lundberg, S. M., & Lee, S.-I. (2017). A unified approach to interpreting model predictions. *Advances in Neural Information Processing Systems, 30.*
 
 Putnam, R. D. (2015). *Our kids: The American dream in crisis.* Simon & Schuster.
 
 University of Michigan Institute for Social Research. (2023). *Panel Study of Income Dynamics* [public use dataset]. Survey Research Center. https://psidonline.isr.umich.edu
-
-*Last updated: April 2026*
